@@ -77,9 +77,6 @@ def hard_negative_contrastive_loss(
     return torch.stack(losses).mean()
 
 
-# --------------------------------------------------
-# Zero-shot split (uses config now)
-# --------------------------------------------------
 def zero_shot_split(dataset, zero_shot_ratio=0.15, seed=42):
 
     all_labels = list(dataset.all_labels)
@@ -95,7 +92,6 @@ def zero_shot_split(dataset, zero_shot_ratio=0.15, seed=42):
     for sample in dataset.data:
         labels = set(sample["labels"])
 
-        # Train samples: only contain train labels
         if labels.issubset(train_labels):
             train_data.append(sample)
 
@@ -106,9 +102,7 @@ def zero_shot_split(dataset, zero_shot_ratio=0.15, seed=42):
     return train_data, test_data, list(train_labels), list(zero_shot_labels)
 
 
-# --------------------------------------------------
-# Training
-# --------------------------------------------------
+
 def train(config_path):
 
     with open(config_path) as f:
@@ -116,9 +110,6 @@ def train(config_path):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # ----------------------------------------------
-    # Dataset
-    # ----------------------------------------------
     dataset = ZeroShotDataset(config["data"]["synthetic_data_path"])
 
     train_data, test_data, raw_train_labels, raw_zero_shot_labels = zero_shot_split(
@@ -127,11 +118,11 @@ def train(config_path):
             seed=42,
         )
 
-# Keep raw for indexing
+
     train_label_to_index = {l: i for i, l in enumerate(raw_train_labels)}
     num_train_labels = len(raw_train_labels)
 
-    # Prompted versions for encoding
+
     train_labels = [f"This text is about {l}." for l in raw_train_labels]
     zero_shot_labels = [f"This text is about {l}." for l in raw_zero_shot_labels]
     
@@ -145,9 +136,6 @@ def train(config_path):
     print(f"Train samples: {len(train_data)}, Val samples: {len(val_data)}, Test samples: {len(test_data)}")
 
 
-    # ----------------------------------------------
-    # DataLoaders
-    # ----------------------------------------------
     train_loader = DataLoader(
         train_data,
         batch_size=config["training"]["batch_size"],
@@ -170,9 +158,7 @@ def train(config_path):
         )
     )
 
-    # ----------------------------------------------
-    # Model
-    # ----------------------------------------------
+
     model = BiEncoderModel(config["model"]["name"])
     model.to(device)
 
@@ -184,9 +170,7 @@ def train(config_path):
 
     mlflow.set_experiment(config["mlflow"]["experiment_name"])
 
-    # ----------------------------------------------
-    # Training loop
-    # ----------------------------------------------
+
     run_name = f"{config['model']['name']}-{config['training']['num_steps']}steps"
 
     with mlflow.start_run(run_name=run_name):
@@ -238,9 +222,7 @@ def train(config_path):
                 if step % 50 == 0:
                     print(f"Step {step}: Train Loss {loss.item():.4f}")
 
-                # ------------------------------------------
-                # Validation + Early Stopping
-                # ------------------------------------------
+              
                 if step % val_interval == 0:
 
                     model.eval()
@@ -263,7 +245,7 @@ def train(config_path):
 
                     print(f"Step {step}: Val Loss {avg_val_loss:.4f}")
 
-                    # 🔥 Check improvement
+        
                     if avg_val_loss < best_val_loss:
                         best_val_loss = avg_val_loss
                         best_step = step
@@ -281,10 +263,10 @@ def train(config_path):
 
                     model.train()
 
-                    # 🔥 Early stopping
+                    #  Early stopping
                     if patience_counter >= patience:
                         print("Early stopping triggered.")
-                        step = total_steps  # force outer loop exit
+                        step = total_steps  
                         break
 
                 step += 1
@@ -295,9 +277,6 @@ def train(config_path):
         print(f"Best validation loss: {best_val_loss:.4f} at step {best_step}")
         mlflow.log_metric("best_val_loss", best_val_loss)
         
-        # ----------------------------------------------
-        # Save model
-        # ----------------------------------------------
         mlflow.log_artifacts("hard-neg-minilm")
         
         print("Training complete. Running zero-shot evaluation...")
@@ -312,10 +291,7 @@ def train(config_path):
             best_model.encoder.push_to_hub(config["model"]["hub_repo"])
             best_model.tokenizer.push_to_hub(config["model"]["hub_repo"])
 
-        # ----------------------------------------------
-        # Zero-shot evaluation
-        # ----------------------------------------------
-        
+     
         
         # all_eval_labels = train_labels + zero_shot_labels
         all_eval_labels = train_labels + zero_shot_labels
@@ -339,5 +315,5 @@ def train(config_path):
 
 
 if __name__ == "__main__":
-    train("config.yaml")
+    train("biencoder-config.yaml")
 

@@ -8,9 +8,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# =====================================================
-# CONFIG
-# =====================================================
 
 load_dotenv()
 
@@ -28,11 +25,9 @@ LABEL_PATH = "data/label_pool.json"
 MODEL_ID = "gemini-2.5-flash-lite"
 
 MAX_RETRIES = 3
-REQUEST_DELAY = 8  # seconds (safe under rate limits)
+REQUEST_DELAY = 8  
 
-# =====================================================
-# SETUP
-# =====================================================
+
 
 if not API_KEY:
     raise ValueError("GEMINI_API_KEY not found in .env file")
@@ -41,9 +36,7 @@ client = genai.Client(api_key=API_KEY)
 
 os.makedirs("data", exist_ok=True)
 
-# =====================================================
-# SAFE JSON PARSER
-# =====================================================
+
 
 def safe_parse_json(text):
     try:
@@ -55,9 +48,7 @@ def safe_parse_json(text):
     except Exception:
         return None
 
-# =====================================================
-# STAGE 1 — LABEL POOL GENERATION (ROBUST)
-# =====================================================
+
 
 def generate_label_batch(batch_size):
     prompt = f"""
@@ -118,7 +109,7 @@ def get_label_pool():
 
         time.sleep(REQUEST_DELAY)
 
-    # Clean labels
+
     labels = list(set([
         l.strip()
         for l in labels
@@ -131,9 +122,6 @@ def get_label_pool():
     print(f"Final label pool size: {len(labels)}")
     return labels
 
-# =====================================================
-# STAGE 2 — DATA GENERATION
-# =====================================================
 
 DATA_PROMPT_TEMPLATE = """
 Generate {n} unique training examples for open-vocabulary zero-shot classification.
@@ -177,9 +165,6 @@ def generate_data_batch(label_subset, n):
 
     return None
 
-# =====================================================
-# MAIN
-# =====================================================
 
 def main():
     label_pool = get_label_pool()

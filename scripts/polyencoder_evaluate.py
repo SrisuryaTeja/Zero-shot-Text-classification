@@ -1,7 +1,5 @@
 import torch
 from tqdm import tqdm
-
-
 def compute_metrics(model, data, all_labels, zero_shot_labels, device, k=5):
 
     model.eval()
@@ -21,43 +19,41 @@ def compute_metrics(model, data, all_labels, zero_shot_labels, device, k=5):
             text = sample["text"]
             true_labels = set(sample["labels"]) & zero_shot_label_set
 
-            if len(true_labels) == 0:
+            if not true_labels:
                 continue
 
             valid_samples += 1
 
-            # Let model compute similarity
-            similarity = model([text], all_labels, device)  # [1, L]
-
+            similarity = model([text], all_labels, device)
             scores = similarity.squeeze(0)
+
             ranked_indices = torch.argsort(scores, descending=True)
 
             topk_indices = ranked_indices[:k]
 
             predicted_labels = [
-                all_labels[i]
-                .replace("This text is about ", "")
-                .replace(".", "")
-                for i in topk_indices
+                all_labels[i].replace("This text is about ", "").replace(".", "")
+                for i in topk_indices.tolist()
             ]
 
             hits = len(set(predicted_labels) & true_labels)
 
             precision = hits / k
             recall = hits / len(true_labels)
-            f1 = (2 * precision * recall) / (precision + recall + 1e-8)
+
+            if precision + recall > 0:
+                f1 = 2 * precision * recall / (precision + recall)
+            else:
+                f1 = 0.0
 
             precision_total += precision
             recall_total += recall
             f1_total += f1
 
+            # MRR
             reciprocal_rank = 0
-            for rank, idx in enumerate(ranked_indices):
-                raw_label = (
-                    all_labels[idx]
-                    .replace("This text is about ", "")
-                    .replace(".", "")
-                )
+            for rank, idx in enumerate(ranked_indices.tolist()):
+                raw_label = all_labels[idx].replace("This text is about ", "").replace(".", "")
                 if raw_label in true_labels:
                     reciprocal_rank = 1 / (rank + 1)
                     break
@@ -71,8 +67,6 @@ def compute_metrics(model, data, all_labels, zero_shot_labels, device, k=5):
             "f1_at_k": 0.0,
             "mrr": 0.0,
         }
-
-    print(f"Evaluated on {valid_samples}/{len(data)} samples")
 
     return {
         "precision_at_k": precision_total / valid_samples,

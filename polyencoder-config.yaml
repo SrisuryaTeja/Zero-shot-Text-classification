@@ -1,0 +1,37 @@
+# DATA
+data:
+  synthetic_data_path: "data/synthetic_data.json"
+
+# MODEL
+
+model:
+  name: "sentence-transformers/all-MiniLM-L6-v2"
+  num_poly_codes: 16
+  push_to_hub: false
+  hub_repo: "your-username/polyencoder-zero-shot"
+
+
+# TRAINING
+
+training:
+  batch_size: 16
+  learning_rate: 2e-5
+  weight_decay: 0.01
+
+  num_steps: 3000
+  val_check_interval: 200
+  early_stopping_patience: 5
+
+  num_negatives: 60
+  max_grad_norm: 1.0
+
+
+# EVALUATION
+evaluation:
+  top_k: 5
+
+
+# MLFLOW
+
+mlflow:
+  experiment_name: "polyencoder-zero-shot"

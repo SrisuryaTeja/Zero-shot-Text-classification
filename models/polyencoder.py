@@ -14,7 +14,7 @@ class PolyEncoderModel(nn.Module):
         self.num_poly_codes = num_poly_codes
         hidden_size = self.encoder.config.hidden_size
 
-        # Learnable poly codes
+
         self.poly_codes = nn.Parameter(
             torch.randn(num_poly_codes, hidden_size)
         )

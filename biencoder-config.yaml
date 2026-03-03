@@ -1,0 +1,22 @@
+model:
+  name: "model-name"
+  push_to_hub: false
+  hub_repo: "user-name/repo-name"
+
+data:
+  synthetic_data_path: "data/synthetic_data.json"
+
+training:
+  num_steps: 1500
+  batch_size: 32
+  learning_rate: 3e-6
+  weight_decay: 0.005
+  max_grad_norm: 1.0
+  val_check_interval: 100
+  early_stopping_patience: 5
+
+evaluation:
+  top_k: 5
+
+mlflow:
+  experiment_name: "hard_negative_minilm"
