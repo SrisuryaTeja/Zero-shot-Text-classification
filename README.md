@@ -157,6 +157,7 @@ Evaluation is performed using ranking-based metrics:
 | Bi-Encoder (all-MiniLM-L6-v2,without prompt template)               | 0.142      | 0.657    | 0.232 | 0.553 |
 | Bi-Encoder (all-MiniLM-L6-v2 + with prompt template)                | 0.146      | 0.676    | 0.238 | 0.576 |
 | Bi-Encoder (all-MiniLM-L6-v2 + with prompt template + neg sampling) | 0.146      | 0.679    | 0.239 | 0.564 |
+| Bi-Encoder (all-MiniLM-L6-v2 + with prompt template + hard negative)| 0.146      | 0.676    | 0.238 | 0.589 |
 | Poly-Encoder(with prompt template +neg samp)                        | 0.144      | 0.669    | 0.235 | 0.556 |
 
 
