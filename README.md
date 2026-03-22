@@ -2,7 +2,7 @@
 
 A modular framework for building and evaluating **zero-shot text classification** models using Bi-Encoder and Poly-Encoder architectures.
 
-This project explores contrastive learning–based approaches for zero-shot classification and evaluates multiple transformer backbones including DistilBERT and MiniLM, with and without hard negative mining.
+This project explores contrastive learning–based approaches for zero-shot classification and evaluates multiple transformer backbones including DistilBERT and MiniLM, with and without  negative sampling.
 
 ---
 
@@ -99,7 +99,7 @@ You can configure:
 - `learning_rate`
 - `device` (`cpu` or `cuda`)
 - training steps
-- hard negative settings
+- negative  sampling settings
 
 ---
 
@@ -151,25 +151,19 @@ Evaluation is performed using ranking-based metrics:
 
 ---
 
-| Model                                     | Precision@5 | Recall@5 | F1@5  | MRR   |
-|-------------------------------------------|------------|----------|-------|-------|
-| Bi-Encoder (DistilBERT)                   | 0.140      | 0.650    | 0.229 | 0.534 |
-| Bi-Encoder (all-MiniLM-L6-v2)             | 0.142      | 0.658    | 0.232 | 0.553 |
-| Bi-Encoder (all-MiniLM-L6-v2 + Hard Neg.) | 0.146      | 0.676    | 0.238 | 0.589 |
-| Poly-Encoder                              | 0.144      | 0.663    | 0.234 | 0.536 |
+| Model                                                               | Precision@5 | Recall@5 | F1@5  | MRR   |
+|---------------------------------------------------------------------|------------|----------|-------|-------|
+| Bi-Encoder (DistilBERT)                                             | 0.140      | 0.649    | 0.228 | 0.534 |
+| Bi-Encoder (all-MiniLM-L6-v2,without prompt template)               | 0.142      | 0.657    | 0.232 | 0.553 |
+| Bi-Encoder (all-MiniLM-L6-v2 + with prompt template)                | 0.146      | 0.676    | 0.238 | 0.576 |
+| Bi-Encoder (all-MiniLM-L6-v2 + with prompt template + neg sampling) | 0.146      | 0.679    | 0.239 | 0.564 |
+| Poly-Encoder(with prompt template +neg samp)                        | 0.144      | 0.669    | 0.235 | 0.556 |
 
 
-Hard negative mining significantly improves:
-
-- Precision
-- Recall
-- F1
-- MRR
 
 ---
 ## 📈 Key Observations
 
 - MiniLM outperforms DistilBERT.
-- Hard negative mining significantly improves ranking metrics.
-- Bi-Encoder + Hard Negatives achieves the best overall performance.
+- Bi-Encoder + with prompt template achieves the best overall performance.
 - MRR improvement shows better top-rank label prediction quality.
